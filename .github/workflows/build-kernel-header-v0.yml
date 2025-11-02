@@ -110,12 +110,6 @@ jobs:
           git clone --recursive --depth=1 -j $(nproc) --branch $KERNELBRANCH $KERNELREPO $KERNELNAME
 
           echo "Clone kernel source => ($KERNELREPO)"
-      
-      - name: "Clone prima source => (${{ env.KERNELREPO }})"
-        run: |
-          git clone --recursive --depth=1 -j $(nproc) -b wlan/LA.UM.9.6.4/mithorium/master https://github.com/Mi-Thorium/vendor_qcom_opensource_wlan_prima $KERNELNAME/drivers/staging/prima
-
-          echo "Clone kernel source => ($KERNELREPO)"
 
       - name: "Clone audio-legacy source => (${{ env.KERNELREPO }})"
         run: |
@@ -125,7 +119,7 @@ jobs:
 
       - name: "Clone dts-legacy source => (${{ env.KERNELREPO }})"
         run: |
-          git clone --recursive --depth=1 -j $(nproc) -b main https://github.com/SnowAlice-Miscellaneous/kernel_devicetree_msm-4.19 $KERNELNAME/arch/arm64/boot/dts/vendor-legacy
+          git clone --recursive --depth=1 -j $(nproc) -b main https://github.com/SnowAlice-Miscellaneous/kernel_devicetree_msm-4.19 $KERNELNAME/arch/arm64/boot/dts/vendor
 
           echo "Clone kernel source => ($KERNELREPO)"
 
