@@ -19,7 +19,7 @@ jobs:
 
           # Set VNC password (tanpa prompt)
           mkdir -p ~/.vnc
-          echo "123456" | vncpasswd -f > ~/.vnc/passwd
+          echo "" | vncpasswd -f > ~/.vnc/passwd
           chmod 600 ~/.vnc/passwd
 
           # Konfigurasi xstartup
@@ -32,7 +32,7 @@ jobs:
           chmod +x ~/.vnc/xstartup
 
           # Jalankan VNC
-          vncserver :1 -geometry 1280x720 -depth 16 -localhost
+          vncserver :1 -geometry 1920x1080 -depth 24 -localhost
 
           # Jalankan noVNC
           websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 &
@@ -50,7 +50,7 @@ jobs:
           sleep 10
           echo "=============================================="
           echo "Your noVNC RDP is ready!"
-          echo "Password: 123456"
+          echo "Password: "
           echo "----------------------------------------------"
           grep -o 'https://.*trycloudflare.com' log.txt
           echo "=============================================="
