@@ -51,7 +51,7 @@ jobs:
 
     - name: Build xcb-errors
       run: |
-        git clone https://github.com/Airblader/xcb-errors.git ~/xcb-errors
+        git clone git clone https://gitlab.freedesktop.org/xorg/lib/libxcb-errors.git ~/xcb-errors
         cd ~/xcb-errors
         meson setup build --prefix=/usr
         ninja -C build
@@ -59,7 +59,7 @@ jobs:
 
     - name: Build epoll-shim
       run: |
-        git clone https://github.com/Airblader/epoll-shim.git ~/epoll-shim
+        git clone https://gitlab.freedesktop.org/xorg/lib/epoll-shim.git ~/epoll-shim
         cd ~/epoll-shim
         meson setup build --prefix=/usr
         ninja -C build
