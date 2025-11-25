@@ -64,7 +64,7 @@ jobs:
 
     - name: Build epoll-shim
       run: |
-        git clone https://gitlab.freedesktop.org/xorg/lib/epoll-shim.git ~/epoll-shim
+        git clone https://github.com/jiixyj/epoll-shim.git ~/epoll-shim
         cd ~/epoll-shim
         cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build build -j$(nproc)
