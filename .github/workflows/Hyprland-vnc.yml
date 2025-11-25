@@ -46,7 +46,7 @@ jobs:
       run: |
         git clone https://github.com/hyprwm/hyprlang.git ~/hyprlang
         cd ~/hyprlang
-        meson setup build --prefix=/usr
+        meson setup build src --prefix=/usr
         ninja -C build
         sudo ninja -C build install
 
