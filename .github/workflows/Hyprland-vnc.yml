@@ -162,6 +162,10 @@ jobs:
         echo "[wrap-git]" > subprojects/wayland-protocols.wrap
         echo "url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git" >> subprojects/wayland-protocols.wrap
         echo "revision = main" >> subprojects/wayland-protocols.wrap
+        # glaze
+        echo "[wrap-git]" > subprojects/glaze.wrap
+        echo "url = https://github.com/stephenberry/glaze.git" >> subprojects/glaze.wrap
+        echo "revision = main" >> subprojects/glaze.wrap
         meson setup build --prefix=/usr
         ninja -C build
         sudo ninja -C build install
