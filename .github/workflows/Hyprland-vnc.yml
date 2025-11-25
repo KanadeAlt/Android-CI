@@ -12,7 +12,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Fix mirrors (tanpa azure)
+    - name: Fix mirrors
       run: |
         sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list
         sudo apt-get update --fix-missing
@@ -74,6 +74,14 @@ jobs:
         cd hyprlang
         cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
         cmake --build ./build --config Release --target hyprlang -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+        sudo cmake --install build
+
+    - name: Build Aquamarine
+      run: |
+        git clone https://github.com/hyprwm/aquamarine.git ~/aquamarine
+        cd ~/aquamarine
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build build --target all -j$(nproc)
         sudo cmake --install build
 
     - name: Build Hyprland from source
