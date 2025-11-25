@@ -161,8 +161,8 @@ jobs:
         echo "[wrap-git]" > subprojects/wayland-protocols.wrap
         echo "url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git" >> subprojects/wayland-protocols.wrap
         echo "revision = main" >> subprojects/wayland-protocols.wrap
-         # glaze header-only
-        git clone https://github.com/stephengold/glaze.git ~/glaze
+        # glaze header-only
+        git clone https://github.com/stephenberry/glaze.git ~/glaze
         sudo cp -r ~/glaze/include/glaze /usr/include/
         echo "prefix=/usr
         exec_prefix=\${prefix}
