@@ -62,13 +62,19 @@ jobs:
         make -j$(nproc)
         sudo make install
 
-    - name: Build epoll-shim
+    - name: Setup epoll-shim as subproject
       run: |
-        git clone https://github.com/jiixyj/epoll-shim.git ~/epoll-shim
-        cd ~/epoll-shim
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-        cmake --build build -j$(nproc)
-        sudo cmake --install build
+          mkdir -p subprojects
+          echo "[wrap-git]" > subprojects/epoll-shim.wrap
+          echo "url = https://github.com/jiixyj/epoll-shim.git" >> subprojects/epoll-shim.wrap
+          echo "revision = master" >> subprojects/epoll-shim.wrap
+
+    - name: setup wayland-protocols as subproject
+      run: |
+          mkdir -p subprojects
+          echo "[wrap-git]" > subprojects/wayland-protocols.wrap
+          echo "url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git" >> subprojects/wayland-protocols.wrap
+          echo "revision = 1.49" >> subprojects/wayland-protocols.wrap
 
     - name: Build wlroots (patched calloc)
       run: |
