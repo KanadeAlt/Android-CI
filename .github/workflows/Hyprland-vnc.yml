@@ -151,7 +151,7 @@ jobs:
 
     - name: Build Hyprland from source
       run: |
-        git clone https://github.com/hyprwm/Hyprland.git ~/hyprland-source
+        git clone -b v0.52.1-b https://github.com/hyprwm/Hyprland.git ~/hyprland-source
         cd ~/hyprland-source
         mkdir -p subprojects
         # epoll-shim
