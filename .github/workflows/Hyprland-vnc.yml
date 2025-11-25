@@ -47,10 +47,15 @@ jobs:
         sudo apt install -y \
           libvirglrenderer-dev libsdl2-dev xwayland
 
-    - name: Build wlroots
+    - name: Build wlroots (patched calloc)
       run: |
         git clone https://gitlab.freedesktop.org/wlroots/wlroots.git --branch 0.17.0 ~/wlroots
         cd ~/wlroots
+
+        echo "=== calloc patch ==="
+        sed -i 's/calloc(sizeof(unsigned int), \(group->[^)]*\))/calloc(\1, sizeof(unsigned int))/g' backend/libinput/tablet_pad.c
+
+        echo "=== COMPILE wlroots ==="
         meson setup build --prefix=/usr
         ninja -C build
         sudo ninja -C build install
