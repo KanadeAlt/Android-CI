@@ -84,6 +84,15 @@ jobs:
         cmake --build build -j$(nproc)
         sudo cmake --install build
 
+    - name: Build libinput
+      run: |
+        sudo apt remove -y libinput-dev
+        git clone https://gitlab.freedesktop.org/libinput/libinput.git ~/libinput
+        cd ~/libinput
+        meson setup build --prefix=/usr
+        ninja -C build
+        sudo ninja -C build install
+
     - name: Build Aquamarine
       run: |
         git clone https://github.com/hyprwm/aquamarine.git ~/aquamarine
