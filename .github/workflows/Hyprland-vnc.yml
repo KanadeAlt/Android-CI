@@ -34,6 +34,23 @@ jobs:
         sudo apt install -y \
           libvirglrenderer-dev libsdl2-dev xwayland
 
+    - name: Install GCC 14
+      run: |
+        sudo apt update
+
+        # Download GCC 14 packages directly
+        wget http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14_14.2.0-1ubuntu1_amd64.deb
+        wget http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/g++-14_14.2.0-1ubuntu1_amd64.deb
+
+        sudo apt install -y ./gcc-14_14.2.0-1ubuntu1_amd64.deb
+        sudo apt install -y ./g++-14_14.2.0-1ubuntu1_amd64.deb
+
+        sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 100
+
+        gcc --version
+        g++ --version
+
     - name: Build wlroots
       run: |
         git clone https://gitlab.freedesktop.org/wlroots/wlroots.git --branch 0.17.0 ~/wlroots
@@ -46,16 +63,16 @@ jobs:
       run: |
         git clone https://github.com/hyprwm/hyprutils.git ~/hyprutils
         cd ~/hyprutils
-        cmake -B build
-        cmake --build build --config Release
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf NPROCESSORS_CONF`
         sudo cmake --install build
 
     - name: Download hyprlang
       run: |
         git clone https://github.com/hyprwm/hyprlang.git
         cd hyprlang
-        cmake -B build
-        cmake --build build --config Release
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target hyprlang -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
         sudo cmake --install build
 
     - name: Build Hyprland from source
