@@ -51,7 +51,7 @@ jobs:
 
     - name: Build xcb-errors
       run: |
-        git clone git clone https://gitlab.freedesktop.org/xorg/lib/libxcb-errors.git ~/xcb-errors
+        git clone https://gitlab.freedesktop.org/xorg/lib/libxcb-errors.git ~/xcb-errors
         cd ~/xcb-errors
         meson setup build --prefix=/usr
         ninja -C build
