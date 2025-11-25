@@ -40,7 +40,8 @@ jobs:
           libwayland-dev wayland-protocols \
           liburing-dev libinih-dev libpugixml-dev libmtdev-dev libwacom-dev \
           libgtk-3-dev libglib2.0-dev libzip-dev librsvg2-dev libmagic-dev libjpeg-dev libwebp-dev libpng-dev libcairo2-dev \
-          libpangocairo-1.0-0 libpixman-1-dev librsvg2-dev libre2-dev libxcb-res0-dev libinotifytools0-dev
+          libpangocairo-1.0-0 libpixman-1-dev librsvg2-dev libre2-dev libxcb-res0-dev libinotifytools0-dev \
+          autoconf automake libtool pkg-config m4 xutils-dev
        
         sudo apt install -y \
           libxcursor-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-xinerama0-dev \
@@ -53,7 +54,8 @@ jobs:
       run: |
         git clone --recurse-submodules https://gitlab.freedesktop.org/xorg/lib/libxcb-errors.git ~/xcb-errors
         cd ~/xcb-errors
-        ./autogen.sh --prefix=/usr
+        autoreconf -i
+        ./configure --prefix=/usr
         make -j$(nproc)
         sudo make install
 
