@@ -12,6 +12,19 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Fix mirrors (tanpa azure)
+      run: |
+        sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list
+        sudo apt-get update --fix-missing
+
+    - name: Install GCC 14
+      run: |
+        sudo apt-get install -y gcc-14 g++-14
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+        gcc --version
+        g++ --version
+
     - name: Install base dependencies
       run: |
         sudo apt update
@@ -33,23 +46,6 @@ jobs:
         
         sudo apt install -y \
           libvirglrenderer-dev libsdl2-dev xwayland
-
-    - name: Install GCC 14
-      run: |
-        sudo apt update
-
-        # Download GCC 14 packages directly
-        wget http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14_14.2.0-1ubuntu1_amd64.deb
-        wget http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/g++-14_14.2.0-1ubuntu1_amd64.deb
-
-        sudo apt install -y ./gcc-14_14.2.0-1ubuntu1_amd64.deb
-        sudo apt install -y ./g++-14_14.2.0-1ubuntu1_amd64.deb
-
-        sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 100
-        sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 100
-
-        gcc --version
-        g++ --version
 
     - name: Build wlroots
       run: |
