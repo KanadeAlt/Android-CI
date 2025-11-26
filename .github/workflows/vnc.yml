@@ -1,4 +1,4 @@
-name: noVNC + WebRTC RDP
+name: noVNC + WebRTC
 
 on:
   workflow_dispatch:
@@ -6,11 +6,18 @@ on:
 jobs:
   run-vnc:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: Install desktop & VNC
       run: |
         sudo apt update
         sudo apt install -y xfce4 xfce4-goodies tightvncserver pulseaudio xclip wget tar git novnc websockify curl
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt update
+        sudo apt install -y google-chrome-stable
         pulseaudio --start
         
         mkdir -p ~/.vnc
@@ -31,13 +38,6 @@ jobs:
 
         export VNC_CLIPBOARD=1
 
-    - name: Install Google Chrome
-      run: |
-        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-        sudo apt update
-        sudo apt install -y google-chrome-stable
-
     - name: Download and run WebRTC-streamer safely
       run: |
         mkdir -p /tmp/webrtc && cd /tmp/webrtc
@@ -52,30 +52,20 @@ jobs:
         echo "Menjalankan webrtc-streamer: $BINARY"
         "./$BINARY" -H 0.0.0.0:8000 "screen://0" &
 
-    - name: Install cloudflared
+    - name: Install Cloudflared tunnel
       run: |
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
         sudo dpkg -i cloudflared-linux-amd64.deb
 
-    - name: Start Cloudflare tunnels and show public URLs
+    - name: Expose noVNC public URL
       run: |
-        echo "Starting Cloudflare tunnels..."
-        
-        # Jalankan tunnel di background dan simpan log
-        cloudflared tunnel --url http://localhost:6080 --metrics 0 --loglevel info > /tmp/tunnel6080.log 2>&1 &
-        cloudflared tunnel --url http://localhost:8000 --metrics 0 --loglevel info > /tmp/tunnel8000.log 2>&1 &
-        
-        # Tunggu URL muncul max 20 detik
-        echo "Waiting for Cloudflare URLs..."
-        for i in {1..20}; do
-          URL6080=$(grep -o 'https://[a-zA-Z0-9.-]*\.trycloudflare.com' /tmp/tunnel6080.log || true)
-          URL8000=$(grep -o 'https://[a-zA-Z0-9.-]*\.trycloudflare.com' /tmp/tunnel8000.log || true)
-          if [[ -n "$URL6080" && -n "$URL8000" ]]; then
-            break
-          fi
-          sleep 1
-        done
-
-        echo "Public URL for noVNC: ${URL6080:-not found}"
-        echo "Public URL for WebRTC-streamer: ${URL8000:-not found}"
-        tail -f /dev/null
+          echo "Creating public tunnel..."
+          cloudflared tunnel --url http://localhost:6080 --no-autoupdate > log.txt 2>&1 &
+          cloudflared tunnel --url http://localhost:8000 --no-autoupdate > log1.txt 2>&1 &
+          sleep 10
+          echo "=============================================="
+          grep -o 'https://.*trycloudflare.com' log.txt
+          grep -o 'https://.*trycloudflare.com' log1.txt
+          echo "=============================================="
+          echo "Keep this Actions job running to maintain connection."
+          tail -f /dev/null
