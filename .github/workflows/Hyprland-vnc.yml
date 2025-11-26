@@ -195,7 +195,8 @@ jobs:
         cd ~/hyprland-source
         export CC=gcc
         export CXX=g++
-        meson setup build --prefix=/usr -Dcpp_std=c++26
+        export LDFLAGS="-static-libstdc++ -static-libgcc"
+        meson setup build --prefix=/usr
         ninja -C build
         ninja -C build install
 
