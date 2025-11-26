@@ -24,7 +24,6 @@ jobs:
         EOF
         chmod +x ~/.vnc/xstartup
         export VNC_CLIPBOARD=1
-        export DISPLAY=:1
         vncserver :1 -geometry 1366x768 -SecurityTypes None -localhost
         websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 &
 
