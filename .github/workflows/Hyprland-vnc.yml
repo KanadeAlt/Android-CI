@@ -148,6 +148,8 @@ jobs:
       run: |
         git clone https://github.com/stephenberry/glaze.git ~/glaze
         cd ~/glaze
+        export CC=gcc
+        export CXX=g++
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=/usr ..
         make -j$(nproc)
@@ -191,6 +193,8 @@ jobs:
     - name: Build Hyprland
       run: |
         cd ~/hyprland-source
+        export CC=clang
+        export CXX=clang++
         meson setup build --prefix=/usr -Dcpp_std=c++23
         ninja -C build
         ninja -C build install
