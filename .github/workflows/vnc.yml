@@ -29,7 +29,7 @@ jobs:
         #!/bin/sh
         unset SESSION_MANAGER
         unset DBUS_SESSION_BUS_ADDRESS
-        gnome-session &
+        startxfce4 &
         EOF
         chmod +x ~/.vnc/xstartup
         vncserver :1 -geometry 1366x768 -depth 24 -localhost
