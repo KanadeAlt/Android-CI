@@ -159,16 +159,6 @@ jobs:
         make -j$(nproc)
         sudo make install
 
-    - name: Restore Meson/Ninja build cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          hyprland-source/build
-          ~/.cache/meson
-        key: hyprland-build-${{ hashFiles('hyprland-source/meson.build') }}
-        restore-keys: |
-          hyprland-build-
-
     - name: setup Hyprland & subproject
       run: |
         git clone -b v0.52.1-b https://github.com/hyprwm/Hyprland.git ~/hyprland-source
