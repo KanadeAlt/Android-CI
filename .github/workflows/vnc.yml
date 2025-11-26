@@ -32,7 +32,7 @@ jobs:
         lxqt-session &
         EOF
         chmod +x ~/.vnc/xstartup
-        vncserver :1 -geometry 1366x768 -depth 24 -localhost -encodings "raw"
+        vncserver :1 -geometry 1366x768 -depth 24 -localhost
         websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 --idle-timeout 0 &
         echo "noVNC is running on port 6080"
 
