@@ -22,7 +22,11 @@ jobs:
 
     - name: Fix mirrors
       run: |
-        sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list
+        cat > /etc/apt/sources.list <<EOF
+        deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+        EOF
         apt-get update --fix-missing
 
     - name: Install base dependencies
