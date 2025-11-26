@@ -14,12 +14,6 @@ jobs:
         sudo apt install -y pulseaudio xclip wget tar git novnc websockify curl
         pulseaudio --start
         mkdir -p ~/.vnc
-        echo "" | vncpasswd -f > ~/.vnc/passwd
-        chmod 600 ~/.vnc/passwd
-        echo "localhost" > ~/.vnc/config
-        echo "Authentication=VncAuth" >> ~/.vnc/config
-        echo "AlwaysShared=1" >> ~/.vnc/config
-        rm -f ~/.vnc/passwd
         cat > ~/.vnc/xstartup <<EOF
         #!/bin/sh
         unset SESSION_MANAGER
@@ -29,7 +23,7 @@ jobs:
         chmod +x ~/.vnc/xstartup
         export VNC_CLIPBOARD=1
         export DISPLAY=:1
-        vncserver :1 -geometry 1366x768 -depth 24 -localhost -SecurityTypes None
+        vncserver :1 -geometry 1366x768 -SecurityTypes None -localhost
         websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 &
 
     - name: Install Google Chrome
