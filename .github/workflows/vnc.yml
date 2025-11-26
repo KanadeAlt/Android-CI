@@ -13,7 +13,7 @@ jobs:
     - name: Install desktop & VNC
       run: |
         sudo apt update
-        sudo apt install -y xfce4 xfce4-goodies tightvncserver pulseaudio xclip wget tar git novnc websockify curl
+        sudo apt install -y lxqt-core lxqt-panel openbox tightvncserver pulseaudio xclip wget tar git novnc websockify curl
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
         sudo apt update
@@ -29,28 +29,14 @@ jobs:
         #!/bin/sh
         unset SESSION_MANAGER
         unset DBUS_SESSION_BUS_ADDRESS
-        startxfce4 &
+        lxqt-session &
         EOF
         chmod +x ~/.vnc/xstartup
-        vncserver :1 -geometry 1366x768 -depth 24 -localhost
-        websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 &
+        vncserver :1 -geometry 1366x768 -depth 24 -localhost -encodings "raw"
+        websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 --idle-timeout 0 &
         echo "noVNC is running on port 6080"
 
         export VNC_CLIPBOARD=1
-
-    - name: Download and run WebRTC-streamer safely
-      run: |
-        mkdir -p /tmp/webrtc && cd /tmp/webrtc
-        wget -O webrtc-streamer.tar.gz https://github.com/mpromonet/webrtc-streamer/releases/download/v0.8.13/webrtc-streamer-v0.8.13-Linux-x86_64-Release.tar.gz
-        tar -xzf webrtc-streamer.tar.gz
-        BINARY=$(find . -type f -executable -name "*webrtc*" | head -1)
-        if [ -z "$BINARY" ]; then
-          echo "Biner webrtc-streamer tidak ditemukan!"
-          exit 1
-        fi
-        chmod +x "$BINARY"
-        echo "Menjalankan webrtc-streamer: $BINARY"
-        "./$BINARY" -H 0.0.0.0:8000 "screen://0" &
 
     - name: Install Cloudflared tunnel
       run: |
@@ -61,11 +47,9 @@ jobs:
       run: |
           echo "Creating public tunnel..."
           cloudflared tunnel --url http://localhost:6080 --no-autoupdate > log.txt 2>&1 &
-          cloudflared tunnel --url http://localhost:8000 --no-autoupdate > log1.txt 2>&1 &
           sleep 10
           echo "=============================================="
           grep -o 'https://.*trycloudflare.com' log.txt
-          grep -o 'https://.*trycloudflare.com' log1.txt
           echo "=============================================="
           echo "Keep this Actions job running to maintain connection."
           tail -f /dev/null
