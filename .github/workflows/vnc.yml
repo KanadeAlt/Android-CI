@@ -45,11 +45,7 @@ jobs:
         tar -xzf webrtc-streamer-v0.8.13-Linux-x86_64-Release.tar.gz
         cd webrtc-streamer-v0.8.13-Linux-x86_64-Release
         chmod +x webrtc-streamer
-
-    - name: Start WebRTC-streamer
-      run: |
         ./webrtc-streamer -H 0.0.0.0:8000 "screen://0" &
-        sleep 2
 
     - name: Install cloudflared
       run: |
