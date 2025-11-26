@@ -126,7 +126,7 @@ jobs:
         Version: 3.3.0
         Cflags: -I\${includedir}/toml++
         Libs:
-          " | sudo tee /usr/lib/x86_64-linux-gnu/pkgconfig/tomlplusplus.pc
+          " | tee /usr/lib/x86_64-linux-gnu/pkgconfig/tomlplusplus.pc
 
     - name: Build hyprcursor
       run: |
@@ -236,7 +236,7 @@ jobs:
         sleep 10
 
     - name: Install WayVNC
-      run: sudo apt install -y wayvnc
+      run: apt install -y wayvnc
 
     - name: Start WayVNC
       run: |
@@ -245,7 +245,7 @@ jobs:
         sleep 5
 
     - name: Install noVNC
-      run: sudo apt install -y novnc websockify
+      run: apt install -y novnc websockify
 
     - name: Start noVNC
       run: |
@@ -255,7 +255,7 @@ jobs:
     - name: Install Cloudflared
       run: |
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-        sudo dpkg -i cloudflared-linux-amd64.deb
+        dpkg -i cloudflared-linux-amd64.deb
 
     - name: Start Tunnel
       run: |
