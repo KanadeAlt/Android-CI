@@ -11,6 +11,8 @@ jobs:
     env:
       DEBIAN_FRONTEND: noninteractive
       PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig
+      CC: gcc
+      CXX: g++
 
     steps:
     - name: Checkout
@@ -153,9 +155,19 @@ jobs:
         git clone https://github.com/stephenberry/glaze.git ~/glaze
         cd ~/glaze
         mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+        cmake -DCMAKE_INSTALL_PREFIX=/usr
         make -j$(nproc)
         sudo make install
+
+    - name: Restore Meson/Ninja build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          hyprland-source/build
+          ~/.cache/meson
+        key: hyprland-build-${{ hashFiles('hyprland-source/meson.build') }}
+        restore-keys: |
+          hyprland-build-
 
     - name: Build Hyprland from source
       run: |
@@ -170,7 +182,7 @@ jobs:
         echo "[wrap-git]" > subprojects/wayland-protocols.wrap
         echo "url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git" >> subprojects/wayland-protocols.wrap
         echo "revision = main" >> subprojects/wayland-protocols.wrap
-        meson setup build --prefix=/usr
+        meson setup build --prefix=/usr -Dcpp_std=c++20
         ninja -C build
         sudo ninja -C build install
 
