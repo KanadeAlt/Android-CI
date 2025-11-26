@@ -41,11 +41,13 @@ jobs:
 
     - name: Download WebRTC-streamer
       run: |
-        wget https://github.com/mpromonet/webrtc-streamer/releases/download/v0.8.13/webrtc-streamer-v0.8.13-Linux-x86_64-Release.tar.gz
-        tar -xzf webrtc-streamer-v0.8.13-Linux-x86_64-Release.tar.gz
-        cd webrtc-streamer-v0.8.13-Linux-x86_64-Release
-        chmod +x webrtc-streamer
-        ./webrtc-streamer -H 0.0.0.0:8000 "screen://0" &
+        wget -O webrtc-streamer.tar.gz https://github.com/mpromonet/webrtc-streamer/releases/download/v0.8.13/webrtc-streamer-v0.8.13-Linux-x86_64-Release.tar.gz && \
+        tar -xzf webrtc-streamer.tar.gz && \
+        EXTRACT_DIR=$(tar -tzf webrtc-streamer.tar.gz | head -1 | cut -f1 -d"/") && \
+        cd "$EXTRACT_DIR" && \
+        BINARY=$(find . -maxdepth 1 -type f -name "webrtc-streamer*" -executable | head -1) && \
+        chmod +x "$BINARY" && \
+        "$BINARY" -H 0.0.0.0:8000 "screen://0" &
 
     - name: Install cloudflared
       run: |
