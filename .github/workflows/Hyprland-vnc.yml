@@ -31,7 +31,7 @@ jobs:
 
     - name: Install base dependencies
       run: |
-        apt update
+        apt update -o Acquire::AllowInsecureRepositories=true
         apt install -y \
           build-essential cmake meson ninja-build pkg-config \
           git curl wget unzip gettext dbus-x11 \
@@ -45,13 +45,9 @@ jobs:
           liburing-dev libinih-dev libpugixml-dev libmtdev-dev libwacom-dev \
           libgtk-3-dev libglib2.0-dev libzip-dev librsvg2-dev libmagic-dev libjpeg-dev libwebp-dev libpng-dev libcairo2-dev \
           libpangocairo-1.0-0 libpixman-1-dev librsvg2-dev libre2-dev libxcb-res0-dev libinotifytools0-dev \
-          autoconf automake libtool pkg-config m4 xutils-dev xcb-proto libxcb1-dev libinotifytools-dev 
-       
-        apt install -y \
+          autoconf automake libtool pkg-config m4 xutils-dev xcb-proto libxcb1-dev libinotifytools-dev \
           libxcursor-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-xinerama0-dev \
-          libpango1.0-dev libcairo2-dev
-        
-        apt install -y \
+          libpango1.0-dev libcairo2-dev \
           libvirglrenderer-dev libsdl2-dev xwayland
 
     - name: Build xcb-errors
@@ -201,6 +197,7 @@ jobs:
 
     - name: Install Hyprdots dependencies
       run: |
+        apt update -o Acquire::AllowInsecureRepositories=true
         apt install -y \
           kitty rofi-wayland waybar mako-notifier \
           swww fonts-font-awesome zsh fish
