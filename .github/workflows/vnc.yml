@@ -4,50 +4,82 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-rdp:
+  desktop:
     runs-on: ubuntu-latest
     timeout-minutes: 360
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install desktop + VNC + noVNC
+      - name: Install Desktop + PulseAudio + Mesa (llvmpipe)
         run: |
           sudo apt update
-          sudo apt install -y xfce4 xfce4-goodies tightvncserver novnc websockify curl unzip
-          mkdir -p ~/.vnc
-          echo "" | vncpasswd -f > ~/.vnc/passwd
-          chmod 600 ~/.vnc/passwd
-          # Disable auth
-          echo "localhost" > ~/.vnc/config
-          echo "Authentication=VncAuth" >> ~/.vnc/config
-          echo "AlwaysShared=1" >> ~/.vnc/config
-          rm -f ~/.vnc/passwd
-          # xstartup
-          cat > ~/.vnc/xstartup <<EOF
-          #!/bin/sh
-          unset SESSION_MANAGER
-          unset DBUS_SESSION_BUS_ADDRESS
-          startxfce4 &
-          EOF
-          chmod +x ~/.vnc/xstartup
-          vncserver :1 -geometry 1920x1080 -depth 24 -localhost -SecurityTypes None
-          # Start noVNC
-          websockify --web /usr/share/novnc/ --wrap-mode=ignore 6080 localhost:5901 &
-          echo "noVNC running on port 6080"
+          sudo apt install -y \
+            lxde x11vnc xvfb x11-xserver-utils \
+            pulseaudio ffmpeg curl wget git \
+            libopus0 nodejs npm \
+            libgl1-mesa-dri libgl1-mesa-glx mesa-utils libegl1-mesa-dev
 
-      - name: Install Cloudflared tunnel
+          pulseaudio --start
+
+      - name: Set Environment for llvmpipe (software GPU)
+        run: |
+          echo "DISPLAY=:1" >> $GITHUB_ENV
+          echo "MESA_LOADER_DRIVER_OVERRIDE=llvmpipe" >> $GITHUB_ENV
+          echo "GALLIUM_DRIVER=llvmpipe" >> $GITHUB_ENV
+          echo "LIBGL_ALWAYS_SOFTWARE=1" >> $GITHUB_ENV
+
+      - name: Start Xvfb + LXDE Desktop + x11vnc
+        run: |
+          export DISPLAY=:1
+          # Xvfb with RANDR for auto resolution
+          Xvfb :1 -screen 0 1280x720x24 -ac +extension RANDR &
+          sleep 2
+
+          # Start LXDE
+          startlxde &
+          sleep 3
+
+          # Start VNC server without password
+          x11vnc -display :1 -nopw -forever -shared -quiet &
+          sleep 2
+
+      - name: Install WebRTC Streamer (Auto Res + Audio)
+        run: |
+          git clone https://github.com/mpromonet/webrtc-streamer
+          cd webrtc-streamer
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+          sudo cp webrtc-streamer /usr/local/bin/
+
+      - name: Start WebRTC Streamer
+        run: |
+          export DISPLAY=:1
+          # Auto-resolution = enable RANDR monitor listener
+          # Audio = pulse → opus
+          webrtc-streamer \
+            -H 8000 \
+            -C "\"pulse\"" \
+            -O 3000 \
+            -a default \
+            -V "x11grab?framerate=30&draw_mouse=1&use_rw=1" \
+            --size=0x0 \
+            > webrtc.log 2>&1 &
+
+          sleep 3
+          echo "WebRTC Streamer started."
+
+      - name: Install Cloudflared
         run: |
           wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared-linux-amd64.deb
 
-      - name: Expose noVNC public URL
+      - name: Expose WebRTC public URL
         run: |
-          echo "Creating tunnel..."
-          cloudflared tunnel --url http://localhost:6080 --no-autoupdate > log.txt 2>&1 &
-          sleep 10
-          echo "=============================================="
+          cloudflared tunnel --url http://localhost:8000 --no-autoupdate > log.txt 2>&1 &
+          sleep 12
+          echo "======================================="
+          echo "PUBLIC WEBRTC DESKTOP URL:"
           grep -o 'https://.*trycloudflare.com' log.txt
-          echo "=============================================="
+          echo "======================================="
+          echo "Biarkan job ini hidup agar sesi tetap aktif."
           tail -f /dev/null
