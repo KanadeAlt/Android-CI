@@ -64,6 +64,10 @@ jobs:
         sudo unzip system.zip -d /etc/waydroid-extra/images
         sudo unzip vendor.zip -d /etc/waydroid-extra/images
 
+    - name: Create waydroid config directory
+      run: |
+        sudo mkdir -p /etc/waydroid
+
     - name: Configure Waydroid for no-kernel mode
       run: |
         echo "[waydroid]" | sudo tee /etc/waydroid/waydroid.cfg
