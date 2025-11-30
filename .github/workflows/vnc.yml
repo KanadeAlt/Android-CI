@@ -13,7 +13,7 @@ jobs:
     - name: Install desktop & VNC
       run: |
         sudo apt update -o Acquire::AllowInsecureRepositories=true
-        sudo apt install -y xfce4 xfce4-goodies dkms linux-headers-$(uname -r)\
+        sudo apt install -y xfce4 xfce4-goodies dkms linux-headers-$(uname -r) \
         tightvncserver pulseaudio xclip wget tar git novnc websockify curl x11-xserver-utils --allow-unauthenticated
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
