@@ -40,6 +40,30 @@ jobs:
 
         export VNC_CLIPBOARD=1
 
+    - name: Install Waydroid repo
+      run: |
+        curl https://repo.waydro.id | sudo bash
+
+    - name: Install Waydroid
+      run: |
+        sudo apt install -y waydroid
+
+    - name: Initialize Waydroid with GApps (software mode)
+      run: |
+        sudo systemctl stop waydroid-container || true
+        sudo waydroid init -s GAPPS -f
+
+    - name: Start Waydroid Container
+      run: |
+        sudo waydroid container start
+        sleep 10
+
+    - name: Launch Waydroid UI
+      run: |
+        export DISPLAY=:1
+        sudo waydroid session start &
+        sleep 5
+
     - name: Install Cloudflared tunnel
       run: |
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
