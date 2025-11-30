@@ -40,34 +40,54 @@ jobs:
 
         export VNC_CLIPBOARD=1
 
-    - name: Install Waydroid repo
+    - name: Add Waydroid repo and install Waydroid
       run: |
         curl https://repo.waydro.id | sudo bash
-
-    - name: Install Waydroid
-      run: |
+        sudo apt update
         sudo apt install -y waydroid
 
-    - name: Initialize Waydroid with GApps (software mode)
+    - name: Stop any running Waydroid / cleanup
       run: |
         sudo systemctl stop waydroid-container || true
-        sudo WAYDROID_DISABLE_BINDER=1 \
-             WAYDROID_DISABLE_MODULE_LOAD=1 \
-             waydroid init -s GAPPS -f
+        sudo pkill -9 waydroid || true
+        sudo pkill -9 waydroid-container || true
 
-    - name: Start Waydroid Container
+    - name: Prepare custom images directory
       run: |
-        sudo WAYDROID_DISABLE_BINDER=1 \
-             WAYDROID_DISABLE_MODULE_LOAD=1 \
-             waydroid container start
-        sleep 10
+        sudo mkdir -p /etc/waydroid-extra/images
 
-    - name: Launch Waydroid UI
+    - name: Download custom Waydroid system & vendor images
+      run: |
+        cd $(mktemp -d)
+        wget -O system.zip "https://sourceforge.net/projects/waydroid/files/images/system/lineage/waydroid_x86_64/lineage-20.0-20250809-GAPPS-waydroid_x86_64-system.zip/download"
+        wget -O vendor.zip "https://sourceforge.net/projects/waydroid/files/images/vendor/waydroid_x86_64/lineage-20.0-20250809-MAINLINE-waydroid_x86_64-vendor.zip/download"
+        sudo unzip system.zip -d /etc/waydroid-extra/images
+        sudo unzip vendor.zip -d /etc/waydroid-extra/images
+
+    - name: Configure Waydroid for no-kernel mode
+      run: |
+        echo "[waydroid]" | sudo tee /etc/waydroid/waydroid.cfg
+        echo "disable_binder=true" | sudo tee -a /etc/waydroid/waydroid.cfg
+        echo "disable_module_load=true" | sudo tee -a /etc/waydroid/waydroid.cfg
+
+    - name: Initialize Waydroid with custom images + GAPPS
       run: |
         export WAYDROID_DISABLE_BINDER=1
         export WAYDROID_DISABLE_MODULE_LOAD=1
+        sudo waydroid init -s GAPPS -f
+
+    - name: Start Waydroid container
+      run: |
+        export WAYDROID_DISABLE_BINDER=1
+        export WAYDROID_DISABLE_MODULE_LOAD=1
+        sudo waydroid container start
+        sleep 10
+
+    - name: Start Waydroid GUI session in Xvfb
+      run: |
         export DISPLAY=:1
-        sudo -E waydroid session start &
+        sudo -E WAYDROID_DISABLE_BINDER=1 WAYDROID_DISABLE_MODULE_LOAD=1 \
+          waydroid session start &
         sleep 10
 
     - name: Install Cloudflared tunnel
