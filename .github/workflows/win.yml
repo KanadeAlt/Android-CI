@@ -1,60 +1,56 @@
-name: Windows-noVNC-Cloudflare
+name: Windows RDP + Cloudflare Tunnel (Automatic)
 
 on:
   workflow_dispatch:
 
 jobs:
-  novnc:
+  rdp:
     runs-on: windows-latest
 
     steps:
-    - name: Download noVNC + websockify (safe zip names)
+
+    - name: Set RDP Password
       run: |
-        curl -L -o noVNC.zip https://github.com/novnc/noVNC/archive/refs/heads/master.zip
-        curl -L -o websockify.zip https://github.com/novnc/websockify/archive/refs/heads/master.zip
+        net user runneradmin "Password123!"
+      shell: powershell
 
-        Expand-Archive noVNC.zip -DestinationPath C:\
-        Expand-Archive websockify.zip -DestinationPath C:\
-
-        Rename-Item "C:\noVNC-master" "C:\noVNC"
-        Rename-Item "C:\websockify-master" "C:\websockify"
-
-    - name: Install Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Enable RDP
+    - name: Enable Windows RDP
       run: |
-        Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
+        # Enable RDP login
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" `
+          -Name fDenyTSConnections -Value 0
+
+        # Disable NLA (biar semua RDP client bisa masuk)
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" `
+          -Name UserAuthentication -Value 0
+
+        # Allow firewall
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+      shell: powershell
 
-    - name: Start websockify (RDP → VNC)
+    - name: Install cloudflared
+      run: choco install cloudflared -y
+      shell: powershell
+
+    - name: Start Cloudflare Tunnel (Auto)
       run: |
-        Start-Process -WindowStyle Hidden python -ArgumentList "C:\websockify\websockify.py 6081 localhost:3389"
+        echo "Starting Cloudflare tunnel..."
+        Start-Process -NoNewWindow -FilePath "cloudflared" -ArgumentList "tunnel --url rdp://localhost:3389"
+        Start-Sleep -Seconds 5
+      shell: powershell
 
-    - name: Start noVNC proxy server
+    - name: Show Tunnel URL
       run: |
-        Start-Process -WindowStyle Hidden python -ArgumentList "C:\noVNC\utils\novnc_proxy --listen 6080 --vnc localhost:6081"
-
-    - name: Download cloudflared
-      run: |
-        curl -L -o cloudflared.exe https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
-        Move-Item cloudflared.exe C:\cloudflared.exe
-
-    - name: Start Cloudflare Tunnel (stable)
-      run: |
-        New-Item -ItemType Directory -Path C:\cf -Force > $null
-
-        Start-Process -WindowStyle Hidden `
-          -FilePath "C:\cloudflared.exe" `
-          -ArgumentList "tunnel --protocol http2 --no-autoupdate --url http://localhost:6080 --logfile C:\cf\log.txt"
-
+        echo "Waiting for Cloudflare tunnel URL..."
         Start-Sleep -Seconds 10
 
-    - name: Show Cloudflare URL
-      run: |
-        Get-Content C:\cf\log.txt | Select-String "https://"
-
-    - name: Keep alive
-      run: ping -t 127.0.0.1
+        Get-Content "$env:USERPROFILE\.cloudflared\cloudflared.log" | Select-String "trycloudflare" -Last 1
+        echo ""
+        echo "==============================="
+        echo "   Windows RDP is Ready!"
+        echo "==============================="
+        echo " Username : runneradmin"
+        echo " Password : Password123!"
+        echo ""
+        echo "If URL not printed above, scroll up in the build logs."
+      shell: powershell
