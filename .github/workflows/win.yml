@@ -1,0 +1,58 @@
+name: Windows-noVNC-Cloudflare
+
+on:
+  workflow_dispatch:
+
+jobs:
+  novnc:
+    runs-on: windows-latest
+
+    steps:
+    - name: Download noVNC
+      run: |
+        curl -LO https://github.com/novnc/noVNC/archive/refs/heads/master.zip
+        tar -xf master.zip
+        mv noVNC-master C:\noVNC
+
+    - name: Download websockify
+      run: |
+        curl -LO https://github.com/novnc/websockify/archive/refs/heads/master.zip
+        tar -xf master.zip
+        mv websockify-master C:\websockify
+
+    - name: Install Python (for websockify)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Enable Windows RDP
+      run: |
+        Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+    - name: Start websockify (RDP → WebSocket @ 6081)
+      run: |
+        Start-Process -WindowStyle Hidden -FilePath "python" -ArgumentList "C:\websockify\websockify.py 6081 localhost:3389"
+
+    - name: Start noVNC (web UI @ 6080)
+      run: |
+        Start-Process -WindowStyle Hidden -FilePath "python" -ArgumentList "C:\noVNC\utils\launch.py --vnc localhost:6081 --listen 6080"
+
+    - name: Download Cloudflared
+      run: |
+        curl -LO https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+        ren cloudflared-windows-amd64.exe cloudflared.exe
+        move cloudflared.exe C:\cloudflared.exe
+
+    - name: Start Cloudflare Tunnel (expose port 6080)
+      run: |
+        Start-Process -WindowStyle Hidden -FilePath "C:\cloudflared.exe" -ArgumentList "tunnel --url http://localhost:6080 --no-autoupdate"
+        timeout /t 5
+
+    - name: Show Tunnel URL
+      run: |
+        Get-Content C:\Users\runneradmin\.cloudflared\*.log
+
+    - name: Keep alive
+      run: |
+        ping -t 127.0.0.1 >NUL
