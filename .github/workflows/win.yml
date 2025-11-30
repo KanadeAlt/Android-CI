@@ -1,4 +1,4 @@
-name: Windows RDP + Cloudflare Tunnel (Automatic)
+name: Windows RDP + Cloudflare Tunnel (6 Hours Runtime)
 
 on:
   workflow_dispatch:
@@ -6,51 +6,64 @@ on:
 jobs:
   rdp:
     runs-on: windows-latest
+    timeout-minutes: 360   # 6 jam
 
     steps:
 
     - name: Set RDP Password
-      run: |
-        net user runneradmin "Password123!"
+      run: net user runneradmin "1"
       shell: powershell
 
     - name: Enable Windows RDP
       run: |
-        # Enable RDP login
-        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" `
-          -Name fDenyTSConnections -Value 0
-
-        # Disable NLA (biar semua RDP client bisa masuk)
-        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" `
-          -Name UserAuthentication -Value 0
-
-        # Allow firewall
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" -Name fDenyTSConnections -Value 0
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name UserAuthentication -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+      shell: powershell
+
+    - name: Install Google Chrome
+      run: |
+        choco install googlechrome -y
       shell: powershell
 
     - name: Install cloudflared
       run: choco install cloudflared -y
       shell: powershell
 
-    - name: Start Cloudflare Tunnel (Auto)
+    - name: Start Cloudflare Tunnel
       run: |
-        echo "Starting Cloudflare tunnel..."
-        Start-Process -NoNewWindow -FilePath "cloudflared" -ArgumentList "tunnel --url rdp://localhost:3389"
-        Start-Sleep -Seconds 5
+        $log = "$env:USERPROFILE\.cloudflared\cloudflared.log"
+        Start-Process -NoNewWindow cloudflared -ArgumentList "tunnel --url rdp://localhost:3389" -RedirectStandardOutput $log -RedirectStandardError $log
+        Start-Sleep -Seconds 10
       shell: powershell
 
-    - name: Show Tunnel URL
+    - name: Print Tunnel URL
       run: |
-        echo "Waiting for Cloudflare tunnel URL..."
-        Start-Sleep -Seconds 10
+        $log = "$env:USERPROFILE\.cloudflared\cloudflared.log"
 
-        Get-Content "$env:USERPROFILE\.cloudflared\cloudflared.log" | Select-String "trycloudflare" -Last 1
+        echo "======================================"
+        echo " Cloudflare Tunnel URL:"
+        echo "======================================"
+
+        if (Test-Path $log) {
+          $line = (Get-Content $log -Tail 50 | Select-String "trycloudflare")[-1]
+          echo $line
+        } else {
+          echo "Log file not found!"
+        }
+
         echo ""
-        echo "==============================="
-        echo "   Windows RDP is Ready!"
-        echo "==============================="
-        echo " Username : runneradmin"
-        echo " Password : Password123!"
+        echo "RDP Login:"
+        echo "  User: runneradmin"
+        echo "  Pass: Password123!"
         echo ""
-        echo "If URL not printed above, scroll up in the build logs."
+        echo "Runner will stay online for 6 hours..."
+      shell: powershell
+
+    - name: Keep Alive 6 Hours
+      run: |
+        echo "Starting 6-hour keep alive loop..."
+        for ($i = 0; $i -lt 21600; $i++) {
+          Start-Sleep -Seconds 1
+        }
       shell: powershell
