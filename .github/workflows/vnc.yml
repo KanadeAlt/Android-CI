@@ -51,18 +51,24 @@ jobs:
     - name: Initialize Waydroid with GApps (software mode)
       run: |
         sudo systemctl stop waydroid-container || true
-        sudo waydroid init -s GAPPS -f
+        sudo WAYDROID_DISABLE_BINDER=1 \
+             WAYDROID_DISABLE_MODULE_LOAD=1 \
+             waydroid init -s GAPPS -f --force-no-kernel
 
     - name: Start Waydroid Container
       run: |
-        sudo waydroid container start
+        sudo WAYDROID_DISABLE_BINDER=1 \
+             WAYDROID_DISABLE_MODULE_LOAD=1 \
+             waydroid container start
         sleep 10
 
     - name: Launch Waydroid UI
       run: |
+        export WAYDROID_DISABLE_BINDER=1
+        export WAYDROID_DISABLE_MODULE_LOAD=1
         export DISPLAY=:1
-        sudo waydroid session start &
-        sleep 5
+        sudo -E waydroid session start &
+        sleep 10
 
     - name: Install Cloudflared tunnel
       run: |
