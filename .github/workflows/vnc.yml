@@ -44,11 +44,14 @@ jobs:
       run: |
         git clone https://github.com/anbox/anbox-modules
         cd anbox-modules
-        sudo cp -rT ashmem /usr/src/anbox-ashmem-1
+        sudo cp anbox.conf /etc/modules-load.d/
+        sudo cp 99-anbox.rules /lib/udev/rules.d/
         sudo cp -rT binder /usr/src/anbox-binder-1
-        sudo dkms install anbox-ashmem/1
         sudo dkms install anbox-binder/1
-
+        sudo modprobe binder_linux
+        lsmod | grep -e binder_linux
+        ls -alh /dev/binder
+        
     - name: Add Waydroid repo and install Waydroid
       run: |
         curl https://repo.waydro.id | sudo bash
